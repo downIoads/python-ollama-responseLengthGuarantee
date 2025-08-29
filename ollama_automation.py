@@ -56,7 +56,7 @@ def query_ollama(*, user_prompt: str, target_word_amount: int, model: str = "gpt
 
 def main():
     user_prompt = "cool facts about capybaras"
-    target_word_amount = 1000 # you should generate a response with at least 2000 words
+    target_word_amount = 1000 # generate a response with at least this many words
     model = "llama3.1:8b" # gpt-oss:20b
 
     query_ollama(user_prompt=user_prompt, target_word_amount=target_word_amount, model=model)
