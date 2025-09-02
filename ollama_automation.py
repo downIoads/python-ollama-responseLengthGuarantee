@@ -10,17 +10,21 @@ DEFAULT_SYSTEM_PROMPT = "\nSystem Prompt Instruction: Only output raw text in yo
 
 
 # clean_response enforces a certain output:
+#       Only ' symbol is used for apostrophes
 #       No duplicate sentences allowed
 #       Contains only certain chars
 #       Starts with 'Speaker 1:' (vibevoice requirement)
 def clean_response(*, response: str) -> str:
+    # Phase 0: Replace apostrophe-like symbols with '
+    response = re.sub(r"[’‘‛ʼʹʻʽ′‵´＇❛❜`]", "'", response)
+
     # Phase 1: Remove duplicate sentences
     sentences = re.findall(r'[^.?!]+[.?!]', response)
     response = " ".join(dict.fromkeys(s.strip() for s in sentences))
 
     # Phase 2: Remove illegal chars
     enforced_prefix = "Speaker 1: "
-    response = re.sub(r'[^a-zA-Z0-9,.:()\n\-?! ]', '', response) # only allows a-z, A-Z, 0-9, ',', '.', '(', ')', ' ', '\n', '-', '?', '!'
+    response = re.sub(r"[^a-zA-Z0-9,.:()'\n\-?! ]", "", response) # only allows a-z, A-Z, 0-9, ',', '.', '(', ')', ' ', '\n', '-', '?', '!', '''
     
     # Phase 3: Enforce prefix
     if not response.startswith(enforced_prefix):
@@ -186,8 +190,8 @@ def main():
     # OLLAMA CONFIG
     user_prompt = read_user_prompt(filename="user_prompt.txt")
     target_word_amount = 1000
-    ollama_models = ["llama3.1:8b", "gpt-oss:20b"]
-    model = ollama_models[0]
+    ollama_models = ["llama3.1:8b", "qwen3:14b", "gpt-oss:20b"]
+    model = ollama_models[2]
 
     # VIBEVOICE CONFIG
     voice_model = "microsoft/VibeVoice-1.5B" # other option: "WestZhang/VibeVoice-Large-pt" but my gpu is too bad for this :(
@@ -241,8 +245,8 @@ def main():
 main()
 # What this script does
 #   - takes your prompt and generates response using some ollama model
-#   - takes that response and generates audio files spoken by custom voices taken from the list using vibevoice
-# So you basically just get audio files that read the response to you. This script probably does more than some multimillion dollar ai startups lul
+#   - takes that response and generates audio file spoken by custom voice using vibevoice
+# So you basically just get an audio file that reads the response to you. This script probably does more than some multimillion dollar ai startups lul
 
 # Assumptions:
 #   A lot actually, it's not supposed to just run on your pc. It assumes docker container name for vibevoice and a certain setup, certain ollama models being installed, nvidia gpu and drivers correctly set-up etc.
